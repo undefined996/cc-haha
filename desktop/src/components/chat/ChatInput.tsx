@@ -24,7 +24,7 @@ import { FileSearchMenu, type FileSearchMenuHandle } from './FileSearchMenu'
 import { LocalSlashCommandPanel, type LocalSlashCommandName } from './LocalSlashCommandPanel'
 import { ContextUsageIndicator } from './ContextUsageIndicator'
 import {
-  FALLBACK_SLASH_COMMANDS,
+  getLocalizedFallbackCommands,
   filterSlashCommands,
   findSlashTrigger,
   mergeSlashCommands,
@@ -352,8 +352,8 @@ export function ChatInput({ variant = 'default', compact = false }: ChatInputPro
   }, [fileSearchOpen])
 
   const allSlashCommands = useMemo(
-    () => mergeSlashCommands(slashCommands, FALLBACK_SLASH_COMMANDS),
-    [slashCommands],
+    () => mergeSlashCommands(slashCommands, getLocalizedFallbackCommands(t)),
+    [slashCommands, t],
   )
 
   const filteredCommands = useMemo(() => {

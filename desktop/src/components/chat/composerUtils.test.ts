@@ -50,14 +50,30 @@ describe('composerUtils', () => {
     )
   })
 
-  it('keeps server-provided descriptions when they exist', () => {
+  it('keeps server-provided descriptions for non-built-in commands', () => {
     expect(
       mergeSlashCommands([
-        { name: 'clear', description: 'Server description' },
+        { name: 'team:lark', description: 'Team-provided description' },
       ]),
     ).toEqual(
       expect.arrayContaining([
-        { name: 'clear', description: 'Server description' },
+        { name: 'team:lark', description: 'Team-provided description' },
+      ]),
+    )
+  })
+
+  it('prefers the localized fallback description for built-in commands', () => {
+    // For commands the desktop owns the copy for (e.g. /clear, /compact, /help),
+    // the localized description must win over whatever the CLI broadcasts so the
+    // i18n keys actually take effect at runtime.
+    expect(
+      mergeSlashCommands(
+        [{ name: 'clear', description: 'CLI English description' }],
+        [{ name: 'clear', description: 'Localized description' }],
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        { name: 'clear', description: 'Localized description' },
       ]),
     )
   })
