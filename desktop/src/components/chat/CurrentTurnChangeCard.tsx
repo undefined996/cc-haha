@@ -157,7 +157,9 @@ export function CurrentTurnChangeCard({
                   <span className="block truncate text-sm font-medium text-[var(--color-text-primary)]">{fileName}</span>
                   <span className="block truncate text-xs text-[var(--color-text-tertiary)]">{`${t(typeInfo.categoryKey as Parameters<typeof t>[0])} · ${typeInfo.ext}`}</span>
                 </span>
-                <span className="material-symbols-outlined shrink-0 text-[18px] text-[var(--color-text-tertiary)]">chevron_right</span>
+                {!previewable && (
+                  <span className="material-symbols-outlined shrink-0 text-[18px] text-[var(--color-text-tertiary)]">chevron_right</span>
+                )}
               </button>
               {previewable && (
                 <button

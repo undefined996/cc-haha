@@ -21,7 +21,7 @@ export function BrowserSurface({ sessionId }: { sessionId: string }) {
 
   useLayoutEffect(() => {
     const el = hostRef.current
-    if (!el || !session) return
+    if (!el || !session?.url) return
     previewBridge.open(session.url, computeWebviewBounds(el.getBoundingClientRect()))
     // The visibility-sync effect below owns setVisible() — including the
     // initial reveal — so it always factors in overlayCount.
@@ -70,6 +70,22 @@ export function BrowserSurface({ sessionId }: { sessionId: string }) {
 
   if (!session) return null
 
+  const openOrNavigate = (url: string) => {
+    if (!url) return
+    const current = useBrowserPanelStore.getState().bySession[sessionId]
+    store.navigate(sessionId, url)
+    if (current?.url) {
+      previewBridge.navigate(url)
+      return
+    }
+    const el = hostRef.current
+    if (el) {
+      previewBridge.open(url, computeWebviewBounds(el.getBoundingClientRect()))
+    } else {
+      previewBridge.navigate(url)
+    }
+  }
+
   return (
     <div className="flex h-full flex-col">
       <BrowserAddressBar
@@ -77,10 +93,14 @@ export function BrowserSurface({ sessionId }: { sessionId: string }) {
         canGoBack={session.canGoBack}
         canGoForward={session.canGoForward}
         loading={session.loading}
-        onNavigate={(url) => { store.navigate(sessionId, url); previewBridge.navigate(url) }}
+        onNavigate={openOrNavigate}
         onBack={() => { store.goBack(sessionId); store.setLoading(sessionId, true); previewBridge.navigate(useBrowserPanelStore.getState().bySession[sessionId]!.url) }}
         onForward={() => { store.goForward(sessionId); store.setLoading(sessionId, true); previewBridge.navigate(useBrowserPanelStore.getState().bySession[sessionId]!.url) }}
-        onReload={() => { store.setLoading(sessionId, true); previewBridge.navigate(session.url) }}
+        onReload={() => {
+          if (!session.url) return
+          store.setLoading(sessionId, true)
+          previewBridge.navigate(session.url)
+        }}
       />
       <div className="flex items-center gap-1 border-b px-2 py-1">
         <button

@@ -11,11 +11,10 @@ import { useChatStore } from '../../stores/chatStore'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useWorkspacePanelStore } from '../../stores/workspacePanelStore'
 import { useTerminalPanelStore } from '../../stores/terminalPanelStore'
-import { useBrowserPanelStore } from '../../stores/browserPanelStore'
 import { useTranslation } from '../../i18n'
 import { WindowControls, showWindowControls } from './WindowControls'
 import { OpenProjectMenu } from './OpenProjectMenu'
-import { Folder, FolderOpen, Globe, SquareTerminal } from 'lucide-react'
+import { Folder, FolderOpen, SquareTerminal } from 'lucide-react'
 import { ActionDialog } from '../shared/ActionDialog'
 
 const TAB_WIDTH = 180
@@ -73,7 +72,6 @@ export function TabBar() {
     activeTabId && isActiveSessionTab ? state.getMode(activeTabId) : 'workspace',
   )
   const isWorkspacePanelOpen = isWorkbenchOpen && workbenchMode === 'workspace'
-  const isBrowserPanelOpen = isWorkbenchOpen && workbenchMode === 'browser'
   const isTerminalPanelOpen = useTerminalPanelStore((state) =>
     activeTabId && isActiveSessionTab ? state.isPanelOpen(activeTabId) : false,
   )
@@ -404,30 +402,6 @@ export function TabBar() {
               }
             }}
             active={isWorkspacePanelOpen}
-          />
-        )}
-        {isActiveSessionTab && activeTabId && (
-          <ToolbarIconButton
-            icon={<Globe size={17} strokeWidth={1.9} />}
-            label={t(isBrowserPanelOpen ? 'tabs.hideBrowser' : 'tabs.showBrowser')}
-            onClick={() => {
-              const workbench = useWorkspacePanelStore.getState()
-              if (workbench.isPanelOpen(activeTabId) && workbench.getMode(activeTabId) === 'browser') {
-                workbench.closePanel(activeTabId)
-                return
-              }
-              const browser = useBrowserPanelStore.getState()
-              const existing = browser.bySession[activeTabId]
-              if (existing) {
-                // Re-surface the workbench in browser mode at the last url
-                // without resetting history. (browser.open resets history.)
-                workbench.setMode(activeTabId, 'browser')
-                workbench.openPanel(activeTabId)
-              } else {
-                browser.open(activeTabId, 'http://localhost:5173/')
-              }
-            }}
-            active={isBrowserPanelOpen}
           />
         )}
       </div>

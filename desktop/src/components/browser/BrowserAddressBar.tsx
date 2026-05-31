@@ -23,11 +23,12 @@ export function BrowserAddressBar({ url, canGoBack, canGoForward, loading = fals
       <button aria-label="刷新" aria-busy={loading} onClick={onReload} className="p-1">
         {loading ? <Loader2 size={16} className="animate-spin" /> : <RotateCw size={16} />}
       </button>
-      <form className="flex-1" onSubmit={(e) => { e.preventDefault(); onNavigate(draft.trim()) }}>
+      <form className="flex-1" onSubmit={(e) => { e.preventDefault(); onNavigate(normalizeBrowserAddress(draft)) }}>
         <input
           className="w-full rounded-md bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-text-primary)]"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          placeholder="输入网址..."
           spellCheck={false}
         />
       </form>
@@ -41,4 +42,14 @@ export function BrowserAddressBar({ url, canGoBack, canGoForward, loading = fals
       )}
     </div>
   )
+}
+
+export function normalizeBrowserAddress(input: string): string {
+  const value = input.trim()
+  if (!value) return ''
+  if (/^[a-z][a-z\d+\-.]*:\/\//i.test(value) || /^(about|data|file):/i.test(value)) return value
+  if (/^(localhost|127(?:\.\d{1,3}){3}|\[::1\]|::1)(?::\d+)?(?:[/?#].*)?$/i.test(value)) {
+    return `http://${value}`
+  }
+  return `https://${value}`
 }

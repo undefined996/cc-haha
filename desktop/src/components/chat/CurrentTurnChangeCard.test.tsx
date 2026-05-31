@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { act } from 'react'
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -126,6 +126,10 @@ function renderCard(filesChanged: string[]) {
 // ──────────────────────────────────────────────────────────────────────────────
 // Tests
 // ──────────────────────────────────────────────────────────────────────────────
+afterEach(() => {
+  cleanup()
+})
+
 describe('CurrentTurnChangeCard – rich file row (icon / name / type)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -220,6 +224,13 @@ describe('CurrentTurnChangeCard – open-with buttons', () => {
   it('mixed turn: only previewable rows (md/html) get the open-with button, not .ts', () => {
     renderCard(['/w/proj/README.md', '/w/proj/src/main.ts', '/w/proj/index.html'])
     expect(screen.getAllByRole('button', { name: 'openWith.title' })).toHaveLength(2)
+  })
+
+  it('hides the workspace chevron on rows that already show an open-with button', () => {
+    renderCard(['/w/proj/README.md', '/w/proj/index.html', '/w/proj/src/main.ts'])
+
+    expect(screen.getAllByRole('button', { name: 'openWith.title' })).toHaveLength(2)
+    expect(screen.getAllByText('chevron_right')).toHaveLength(1)
   })
 
   it('clicking README.md open-with opens menu with workspace preview item', async () => {

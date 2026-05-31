@@ -1,9 +1,12 @@
 import '@testing-library/jest-dom'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 beforeAll(() => {
-  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver
+  Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
+    value: class { observe() {} unobserve() {} disconnect() {} },
+  })
 })
 
 const { bridge } = vi.hoisted(() => ({
@@ -18,6 +21,7 @@ import { useWorkspacePanelStore } from '../../stores/workspacePanelStore'
 import { useOverlayStore } from '../../stores/overlayStore'
 
 afterEach(() => {
+  cleanup()
   Object.values(bridge).forEach((f) => f.mockReset())
   useBrowserPanelStore.setState(useBrowserPanelStore.getInitialState(), true)
   // browserPanelStore.open() now also opens the unified workbench; keep it isolated.
@@ -30,6 +34,23 @@ describe('BrowserSurface', () => {
     useBrowserPanelStore.getState().open('s1', 'http://localhost:5173/')
     render(<BrowserSurface sessionId="s1" />)
     expect(bridge.open).toHaveBeenCalledWith('http://localhost:5173/', expect.objectContaining({ width: expect.any(Number) }))
+  })
+
+  it('renders an empty address bar without opening a preview for a blank session', () => {
+    useBrowserPanelStore.getState().ensureBlank('s1')
+    render(<BrowserSurface sessionId="s1" />)
+    expect(screen.getByRole('textbox')).toHaveValue('')
+    expect(bridge.open).not.toHaveBeenCalled()
+  })
+
+  it('first navigation from a blank session opens the native preview', () => {
+    useBrowserPanelStore.getState().ensureBlank('s1')
+    render(<BrowserSurface sessionId="s1" />)
+    const input = screen.getByRole('textbox')
+    fireEvent.change(input, { target: { value: 'localhost:3000' } })
+    fireEvent.submit(input.closest('form')!)
+    expect(bridge.open).toHaveBeenCalledWith('http://localhost:3000', expect.objectContaining({ width: expect.any(Number) }))
+    expect(bridge.navigate).not.toHaveBeenCalled()
   })
 
   it('navigating via address bar calls store + bridge', () => {

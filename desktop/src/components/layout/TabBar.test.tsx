@@ -784,12 +784,10 @@ describe('TabBar', () => {
     expect(useWorkspacePanelStore.getState().isPanelOpen('tab-1')).toBe(false)
   })
 
-  it('toggles the unified workbench in browser mode for the active session from the toolbar', async () => {
+  it('does not render a browser toolbar button for session tabs', async () => {
     const { TabBar } = await import('./TabBar')
     const { useTabStore } = await import('../../stores/tabStore')
     const { useChatStore } = await import('../../stores/chatStore')
-    const { useBrowserPanelStore } = await import('../../stores/browserPanelStore')
-    const { useWorkspacePanelStore } = await import('../../stores/workspacePanelStore')
 
     useTabStore.setState({
       tabs: [
@@ -806,16 +804,8 @@ describe('TabBar', () => {
       render(<TabBar />)
     })
 
-    // Opening the browser surfaces the shared workbench in browser mode.
-    fireEvent.click(screen.getByRole('button', { name: 'Show Browser' }))
-    expect(useBrowserPanelStore.getState().bySession['tab-1']?.isOpen).toBe(true)
-    expect(useWorkspacePanelStore.getState().isPanelOpen('tab-1')).toBe(true)
-    expect(useWorkspacePanelStore.getState().getMode('tab-1')).toBe('browser')
-
-    // Toggling it off closes the unified panel (browser state is retained in its store).
-    fireEvent.click(screen.getByRole('button', { name: 'Hide Browser' }))
-    expect(useWorkspacePanelStore.getState().isPanelOpen('tab-1')).toBe(false)
-    expect(screen.getByRole('button', { name: 'Show Browser' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Show Browser' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Hide Browser' })).not.toBeInTheDocument()
   })
 
   it('hides the browser toolbar button for non-session tabs', async () => {
