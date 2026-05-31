@@ -21,8 +21,10 @@ export function BrowserSurface({ sessionId }: { sessionId: string }) {
 
   useLayoutEffect(() => {
     const el = hostRef.current
-    if (!el || !session?.url) return
-    previewBridge.open(session.url, computeWebviewBounds(el.getBoundingClientRect()))
+    if (el && session?.url) {
+      previewBridge.open(session.url, computeWebviewBounds(el.getBoundingClientRect()))
+    }
+    return () => { previewBridge.close() }
     // The visibility-sync effect below owns setVisible() — including the
     // initial reveal — so it always factors in overlayCount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -32,7 +34,7 @@ export function BrowserSurface({ sessionId }: { sessionId: string }) {
   // otherwise be partially covered by the native child webview, which always
   // renders above the DOM. While overlayCount > 0 we hide the webview; when
   // it returns to 0 (and we're still mounted in browser mode) we re-show it.
-  // The Workbench-mode unmount teardown effect below still runs on unmount.
+  // The layout-effect teardown above still closes the webview on unmount.
   useEffect(() => {
     if (!session) return
     previewBridge.setVisible(overlayCount === 0)
@@ -54,8 +56,6 @@ export function BrowserSurface({ sessionId }: { sessionId: string }) {
     return () => { unsub?.() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId])
-
-  useEffect(() => () => { previewBridge.setVisible(false) }, [])
 
   // 兜底：navigated/ready 依赖注入脚本，若外站 CSP 拦截则永不回灌。loading 变 true 后 ~15s 强制收尾。
   const isLoading = session?.loading ?? false

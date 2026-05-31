@@ -43,6 +43,7 @@ const MAX_CAPTURED_SDK_MESSAGES = 40
 const MAX_CAPTURED_SDK_SUMMARY = 20
 const CONTROL_READY_POLL_MS = 50
 const AUTO_MEMORY_DIRNAME = 'memory'
+export const DESKTOP_CLI_GRACEFUL_SHUTDOWN_TIMEOUT_MS = 6_000
 
 type AttachmentRef = {
   type: 'file' | 'image'
@@ -739,7 +740,10 @@ export class ConversationService {
     this.killProcess(sessionId, session)
   }
 
-  async stopSessionAndWait(sessionId: string, timeoutMs = 2_000): Promise<void> {
+  async stopSessionAndWait(
+    sessionId: string,
+    timeoutMs = DESKTOP_CLI_GRACEFUL_SHUTDOWN_TIMEOUT_MS,
+  ): Promise<void> {
     const session = this.sessions.get(sessionId)
     if (!session) return
 
@@ -753,7 +757,9 @@ export class ConversationService {
     }
   }
 
-  async stopAllSessionsAndWait(timeoutMs = 2_000): Promise<void> {
+  async stopAllSessionsAndWait(
+    timeoutMs = DESKTOP_CLI_GRACEFUL_SHUTDOWN_TIMEOUT_MS,
+  ): Promise<void> {
     const activeSessions = Array.from(this.sessions.entries())
     if (activeSessions.length === 0) return
 

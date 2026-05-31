@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { ConversationService } from '../services/conversationService.js'
+import {
+  ConversationService,
+  DESKTOP_CLI_GRACEFUL_SHUTDOWN_TIMEOUT_MS,
+} from '../services/conversationService.js'
 import { ProviderService } from '../services/providerService.js'
 import { resetTerminalShellEnvironmentCacheForTests } from '../../utils/terminalShellEnvironment.js'
 
@@ -646,6 +649,10 @@ describe('ConversationService', () => {
     expect(killed.sort()).toEqual(['session-a', 'session-b'])
     expect(drained.sort()).toEqual(['session-a', 'session-b'])
     expect(service.getActiveSessions()).toEqual([])
+  })
+
+  test('default CLI shutdown wait covers the CLI graceful cleanup budget', () => {
+    expect(DESKTOP_CLI_GRACEFUL_SHUTDOWN_TIMEOUT_MS).toBeGreaterThanOrEqual(6_000)
   })
 })
 

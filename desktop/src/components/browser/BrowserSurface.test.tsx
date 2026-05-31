@@ -63,11 +63,11 @@ describe('BrowserSurface', () => {
     expect(useBrowserPanelStore.getState().bySession['s1']!.url).toBe('http://localhost:3000/')
   })
 
-  it('hides the native webview on unmount', () => {
+  it('closes the native webview on unmount', () => {
     useBrowserPanelStore.getState().open('s1', 'http://localhost:5173/')
     const { unmount } = render(<BrowserSurface sessionId="s1" />)
     unmount()
-    expect(bridge.setVisible).toHaveBeenLastCalledWith(false)
+    expect(bridge.close).toHaveBeenCalled()
   })
 
   it('截图 button triggers a capture via preview_eval', () => {
