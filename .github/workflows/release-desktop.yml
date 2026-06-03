@@ -51,8 +51,11 @@ jobs:
 
   signing-preflight:
     runs-on: ubuntu-latest
+    outputs:
+      macos_signed: ${{ steps.validate.outputs.macos_signed }}
     steps:
       - name: Validate release signing and notarization secrets
+        id: validate
         shell: bash
         env:
           CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
@@ -63,8 +66,9 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
-          # macOS signing + notarization is mandatory: Squirrel.Mac auto-update and
-          # first-launch Gatekeeper approval both require a notarized Developer ID build.
+          # macOS signing + notarization is preferred: Squirrel.Mac auto-update and
+          # first-launch Gatekeeper approval work best with a notarized Developer ID build.
+          # A migration release may still ship unsigned while Apple Developer ID setup is pending.
           missing=()
           [ -n "$CSC_LINK" ] || missing+=("MACOS_CERTIFICATE")
           [ -n "$CSC_KEY_PASSWORD" ] || missing+=("MACOS_CERTIFICATE_PASSWORD")
@@ -72,8 +76,10 @@ jobs:
           [ -n "$APPLE_APP_SPECIFIC_PASSWORD" ] || missing+=("APPLE_APP_SPECIFIC_PASSWORD")
           [ -n "$APPLE_TEAM_ID" ] || missing+=("APPLE_TEAM_ID")
           if [ "${#missing[@]}" -gt 0 ]; then
-            printf '::error::Missing required macOS signing/notarization secrets: %s\n' "${missing[*]}"
-            exit 1
+            printf '::warning::Missing macOS signing/notarization secrets (%s): macOS artifacts will be unsigned and users must use install-macos-unsigned.sh.\n' "${missing[*]}"
+            echo "macos_signed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "macos_signed=true" >> "$GITHUB_OUTPUT"
           fi
           # Windows signing is optional: an unsigned NSIS installer still auto-updates
           # (electron-updater), it only triggers SmartScreen warnings. Warn, do not block,
@@ -187,6 +193,7 @@ jobs:
         working-directory: desktop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -200,8 +207,12 @@ jobs:
         run: bun run test:package-smoke --platform ${{ matrix.smoke_platform }} --package-kind release --artifacts-dir desktop/build-artifacts/electron
 
       - name: Verify macOS launch policy
-        if: matrix.smoke_platform == 'macos'
+        if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true'
         run: bun run test:package-smoke --platform macos --package-kind release --artifacts-dir desktop/build-artifacts/electron --require-macos-gatekeeper
+
+      - name: Warn unsigned macOS launch policy skipped
+        if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed != 'true'
+        run: echo "::warning::Skipping macOS Gatekeeper package-smoke because this release is unsigned. Ship install-macos-unsigned.sh with the DMG."
 
       - name: Validate matrix release asset set
         shell: bash
@@ -426,3 +437,4 @@ jobs:
             artifacts/release-assets/**/*.deb
             artifacts/release-assets/**/*.blockmap
             artifacts/update-metadata-standard/*.yml
+            desktop/scripts/install-macos-unsigned.sh

@@ -57,6 +57,8 @@ describe('release desktop workflow', () => {
     expect(collectStep).toContain('*.zip')
     expect(collectStep).toContain('*.blockmap')
     expect(collectStep).toContain('*.yml')
+    expect(collectStep).toContain('install-macos-unsigned.sh')
+    expect(collectStep).toContain('[ "${{ matrix.smoke_platform }}" = "macos" ]')
     expect(collectStep).not.toContain('-type d -name "*.app"')
   })
 
@@ -82,18 +84,23 @@ describe('release desktop workflow', () => {
     expect(desktopPackage.build?.linux?.maintainer).toBe('NanmiCoder <relakkes@gmail.com>')
   })
 
-  test('release workflow requires macOS Gatekeeper launch approval before upload', () => {
+  test('release workflow requires macOS Gatekeeper launch approval for signed builds', () => {
     const workflow = readReleaseWorkflow()
     const gatekeeperStep = workflow.match(
       /- name: Verify macOS launch policy[\s\S]*?(?:\n\s{6}- name:|$)/,
     )?.[0]
+    const unsignedWarningStep = workflow.match(
+      /- name: Warn unsigned macOS launch policy skipped[\s\S]*?(?:\n\s{6}- name:|$)/,
+    )?.[0]
 
-    expect(gatekeeperStep).toContain("if: matrix.smoke_platform == 'macos'")
+    expect(gatekeeperStep).toContain("if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true'")
     expect(gatekeeperStep).toContain('bun run test:package-smoke --platform macos --package-kind release --artifacts-dir desktop/build-artifacts/electron --require-macos-gatekeeper')
+    expect(unsignedWarningStep).toContain("if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed != 'true'")
+    expect(unsignedWarningStep).toContain('install-macos-unsigned.sh')
     expect(workflow.indexOf('Verify macOS launch policy')).toBeLessThan(workflow.indexOf('Upload release artifacts for final publish'))
   })
 
-  test('release workflow blocks on macOS signing/notarization secrets and warns for Windows signing', () => {
+  test('release workflow records macOS signing state and warns for unsigned builds', () => {
     const workflow = readReleaseWorkflow()
     const signingJob = workflow.match(
       /signing-preflight:[\s\S]*?(?:\n {2}[a-zA-Z0-9_-]+:|$)/,
@@ -101,6 +108,8 @@ describe('release desktop workflow', () => {
     const buildJob = extractJob(workflow, 'build')
 
     expect(signingJob).toContain('Validate release signing and notarization secrets')
+    expect(signingJob).toContain('outputs:')
+    expect(signingJob).toContain('macos_signed: ${{ steps.validate.outputs.macos_signed }}')
     for (const secret of [
       'MACOS_CERTIFICATE',
       'MACOS_CERTIFICATE_PASSWORD',
@@ -116,7 +125,11 @@ describe('release desktop workflow', () => {
     ]) {
       expect(signingJob).toContain(secret)
     }
-    expect(signingJob).toContain('Missing required macOS signing/notarization secrets')
+    expect(signingJob).toContain('Missing macOS signing/notarization secrets')
+    expect(signingJob).toContain('macOS artifacts will be unsigned')
+    expect(signingJob).toContain('install-macos-unsigned.sh')
+    expect(signingJob).toContain('macos_signed=false')
+    expect(signingJob).toContain('macos_signed=true')
     expect(signingJob).toContain('Windows signing secrets missing')
     expect(signingJob).toContain('::warning::Windows signing secrets missing')
 
@@ -126,7 +139,7 @@ describe('release desktop workflow', () => {
     const windowsOptionalBlock = signingJob?.match(
       /win_missing=\(\)[\s\S]*?fi\n/,
     )?.[0]
-    expect(macRequiredBlock).toContain('exit 1')
+    expect(macRequiredBlock).not.toContain('exit 1')
     expect(windowsOptionalBlock).toContain('::warning::')
     expect(windowsOptionalBlock).not.toContain('exit 1')
     expect(buildJob).toContain('- quality-preflight')
@@ -179,6 +192,7 @@ describe('release desktop workflow', () => {
     expect(publishJob).toContain('artifacts/release-assets/**/*.exe')
     expect(publishJob).toContain('artifacts/release-assets/**/*.AppImage')
     expect(publishJob).toContain('artifacts/update-metadata-standard/*.yml')
+    expect(publishJob).toContain('desktop/scripts/install-macos-unsigned.sh')
     expect(publishJob).toContain('fail_on_unmatched_files: true')
     expect(publishJob).toContain('Load release notes')
     expect(workflow.indexOf('publish-release:')).toBeGreaterThan(workflow.indexOf('build:'))

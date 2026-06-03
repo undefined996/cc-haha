@@ -126,6 +126,9 @@ jobs:
             | while read -r artifact; do
               cp -f "$artifact" "$STAGING/"
             done
+          if [ "${{ matrix.smoke_platform }}" = "macos" ]; then
+            cp -f desktop/scripts/install-macos-unsigned.sh "$STAGING/"
+          fi
           echo "staging_dir=$STAGING" >> "$GITHUB_OUTPUT"
           ls -lh "$STAGING/" 2>/dev/null || true
 
