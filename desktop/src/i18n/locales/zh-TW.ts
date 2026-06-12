@@ -9,6 +9,7 @@ export const zh: Record<TranslationKey, string> = {
   'common.run': '執行',
   'common.send': '傳送',
   'common.stop': '停止',
+  'common.tokens': '{count} tokens',
   'common.rename': '重新命名',
   'common.retry': '重試',
   'common.loading': '載入中...',

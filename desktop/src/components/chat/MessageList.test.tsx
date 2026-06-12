@@ -36,6 +36,7 @@ function makeSessionState(overrides: Partial<PerSessionState> = {}): PerSessionS
     pendingPermission: null,
     pendingComputerUsePermission: null,
     tokenUsage: { input_tokens: 0, output_tokens: 0 },
+    streamingResponseChars: 0,
     elapsedSeconds: 0,
     statusVerb: '',
     apiRetry: null,
@@ -580,7 +581,7 @@ describe('MessageList nested tool calls', () => {
     expect(card.textContent).toContain('Background command')
     expect(card.textContent).toContain('running')
     expect(card.textContent).toContain('Running Playwright checks')
-    expect(card.textContent).toContain('1,200 tokens')
+    expect(card.textContent).toContain('1.2k tokens')
     expect(card.textContent).toContain('45s')
   })
 

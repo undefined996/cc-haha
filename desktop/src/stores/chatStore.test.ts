@@ -151,6 +151,7 @@ function makeSession(overrides: Partial<PerSessionState> = {}): PerSessionState 
     pendingPermission: null,
     pendingComputerUsePermission: null,
     tokenUsage: { input_tokens: 0, output_tokens: 0 },
+    streamingResponseChars: 0,
     elapsedSeconds: 0,
     statusVerb: '',
     apiRetry: null,
@@ -1292,6 +1293,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -1376,6 +1378,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -1452,6 +1455,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -1619,6 +1623,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [{ name: 'old-command', description: 'Old command' }],
@@ -1992,6 +1997,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2055,6 +2061,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2116,6 +2123,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2437,6 +2445,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 12, output_tokens: 34 },
+          streamingResponseChars: 999,
           elapsedSeconds: 5,
           statusVerb: 'Thinking',
           slashCommands: [],
@@ -2461,6 +2470,7 @@ describe('chatStore history mapping', () => {
     expect(session?.streamingText).toBe('')
     expect(session?.chatState).toBe('idle')
     expect(session?.tokenUsage).toEqual({ input_tokens: 0, output_tokens: 0 })
+    expect(session?.streamingResponseChars).toBe(0)
     expect(session?.slashCommands).toEqual([])
     expect(clearTasksMock).toHaveBeenCalledWith(TEST_SESSION_ID)
 
@@ -2510,6 +2520,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2555,6 +2566,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: 'Compacting conversation',
           slashCommands: [],
@@ -2609,6 +2621,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2657,6 +2670,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2737,6 +2751,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -2981,6 +2996,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3026,6 +3042,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3133,6 +3150,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3203,6 +3221,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3493,6 +3512,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3595,6 +3615,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3647,6 +3668,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3679,6 +3701,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3720,6 +3743,7 @@ describe('chatStore history mapping', () => {
             },
           },
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3784,6 +3808,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3825,6 +3850,7 @@ describe('chatStore history mapping', () => {
           pendingPermission: null,
           pendingComputerUsePermission: null,
           tokenUsage: { input_tokens: 0, output_tokens: 0 },
+          streamingResponseChars: 0,
           elapsedSeconds: 0,
           statusVerb: '',
           slashCommands: [],
@@ -3860,5 +3886,58 @@ describe('chatStore history mapping', () => {
       content: '开始优化UI',
       attachments: undefined,
     })
+  })
+
+  // issue #757: the streaming indicator estimates this turn's output tokens
+  // from streamed characters (÷4, mirroring the CLI spinner) instead of
+  // showing the previous turn's stale usage.
+  it('accumulates streamed text, tool input, and thinking chars for the token estimate', () => {
+    vi.useFakeTimers()
+    useChatStore.setState({ sessions: { [TEST_SESSION_ID]: makeSession() } })
+
+    const charsOf = () =>
+      useChatStore.getState().sessions[TEST_SESSION_ID]?.streamingResponseChars
+
+    useChatStore.getState().handleServerMessage(TEST_SESSION_ID, {
+      type: 'content_delta',
+      text: 'a'.repeat(40),
+    })
+    vi.advanceTimersByTime(60)
+    expect(charsOf()).toBe(40)
+
+    useChatStore.getState().handleServerMessage(TEST_SESSION_ID, {
+      type: 'content_delta',
+      toolInput: '{"a":1}',
+    })
+    vi.advanceTimersByTime(60)
+    expect(charsOf()).toBe(47)
+
+    useChatStore.getState().handleServerMessage(TEST_SESSION_ID, {
+      type: 'thinking',
+      text: 'pondering',
+    })
+    expect(charsOf()).toBe(56)
+
+    vi.runOnlyPendingTimers()
+    vi.useRealTimers()
+  })
+
+  it('resets the streaming token estimate when the user sends the next message', () => {
+    vi.useFakeTimers()
+    useChatStore.setState({
+      sessions: {
+        [TEST_SESSION_ID]: makeSession({
+          chatState: 'idle',
+          streamingResponseChars: 4321,
+        }),
+      },
+    })
+
+    useChatStore.getState().sendMessage(TEST_SESSION_ID, '继续')
+
+    const session = useChatStore.getState().sessions[TEST_SESSION_ID]
+    expect(session?.streamingResponseChars).toBe(0)
+    if (session?.elapsedTimer) clearInterval(session.elapsedTimer)
+    vi.useRealTimers()
   })
 })

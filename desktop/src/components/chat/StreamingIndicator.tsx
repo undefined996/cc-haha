@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import { useChatStore } from '../../stores/chatStore'
 import { useTabStore } from '../../stores/tabStore'
 import { useTranslation, type TranslationKey } from '../../i18n'
+import { formatTokenCount } from '../../lib/formatTokenCount'
 
 function formatElapsed(seconds: number): string {
   if (seconds < 60) return `${seconds}s`
@@ -41,7 +42,8 @@ export function StreamingIndicator() {
   const statusVerb = sessionState?.statusVerb ?? ''
   const apiRetry = sessionState?.apiRetry ?? null
   const elapsedSeconds = sessionState?.elapsedSeconds ?? 0
-  const tokenUsage = sessionState?.tokenUsage ?? { input_tokens: 0, output_tokens: 0 }
+  // chars ÷ 4 estimates output tokens for this turn, mirroring the CLI spinner.
+  const streamingTokens = Math.round((sessionState?.streamingResponseChars ?? 0) / 4)
 
   useEffect(() => {
     if (!apiRetry) return undefined
@@ -106,9 +108,9 @@ export function StreamingIndicator() {
           {formatElapsed(elapsedSeconds)}
         </span>
       )}
-      {tokenUsage.output_tokens > 0 && (
+      {streamingTokens > 0 && (
         <span className="text-[10px] text-[var(--color-text-tertiary)]">
-          · ↓ {tokenUsage.output_tokens}
+          · ↓ {t('common.tokens', { count: formatTokenCount(streamingTokens) })}
         </span>
       )}
     </div>

@@ -9,6 +9,7 @@ export const jp: Record<TranslationKey, string> = {
   'common.run': '実行',
   'common.send': '送信',
   'common.stop': '停止',
+  'common.tokens': '{count} トークン',
   'common.rename': '名前を変更',
   'common.retry': '再試行',
   'common.loading': '読み込み中...',

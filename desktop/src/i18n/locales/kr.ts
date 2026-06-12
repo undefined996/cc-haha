@@ -9,6 +9,7 @@ export const kr: Record<TranslationKey, string> = {
   'common.run': '실행',
   'common.send': '전송',
   'common.stop': '중지',
+  'common.tokens': '{count} 토큰',
   'common.rename': '이름 바꾸기',
   'common.retry': '다시 시도',
   'common.loading': '불러오는 중...',

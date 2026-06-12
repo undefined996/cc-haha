@@ -79,6 +79,12 @@ export type PerSessionState = {
     request: ComputerUsePermissionRequest
   } | null
   tokenUsage: TokenUsage
+  /**
+   * Characters streamed by the assistant during the current turn (text,
+   * thinking, tool input). ÷4 approximates output tokens for the streaming
+   * indicator — same estimation the CLI spinner uses. Reset on each send.
+   */
+  streamingResponseChars: number
   elapsedSeconds: number
   statusVerb: string
   apiRetry?: ApiRetryState | null
@@ -111,6 +117,7 @@ const DEFAULT_SESSION_STATE: PerSessionState = {
   pendingPermission: null,
   pendingComputerUsePermission: null,
   tokenUsage: { input_tokens: 0, output_tokens: 0 },
+  streamingResponseChars: 0,
   elapsedSeconds: 0,
   statusVerb: '',
   apiRetry: null,
@@ -966,6 +973,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             chatState: 'thinking',
             elapsedSeconds: 0,
             streamingText: '',
+            streamingResponseChars: 0,
             statusVerb: isMemberSession ? '' : randomSpinnerVerb(),
             apiRetry: null,
             elapsedTimer: timer,
@@ -1327,7 +1335,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
               : msg.verb && msg.verb !== 'Thinking'
                 ? msg.verb
                 : '',
-            ...(msg.tokens ? { tokenUsage: { ...session.tokenUsage, output_tokens: msg.tokens } } : {}),
             ...(msg.state === 'idle' ? { activeThinkingId: null } : {}),
             ...(msg.state === 'idle' ? { apiRetry: null } : {}),
             ...(nextMessages !== session.messages ? { messages: nextMessages } : {}),
@@ -1439,7 +1446,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
               const text = pendingDeltaBySession.get(sessionId) ?? ''
               pendingDeltaBySession.delete(sessionId)
               flushTimerBySession.delete(sessionId)
-              update((s) => ({ streamingText: s.streamingText + text }))
+              update((s) => ({
+                streamingText: s.streamingText + text,
+                streamingResponseChars: s.streamingResponseChars + text.length,
+              }))
             }, 50)
             flushTimerBySession.set(sessionId, timer)
           }
@@ -1455,6 +1465,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                 const activeToolUseId = s.activeToolUseId
                 return {
                   streamingToolInput: partialInput,
+                  streamingResponseChars: s.streamingResponseChars + text.length,
                   ...(activeToolUseId
                     ? {
                         messages: upsertToolUseMessage(s.messages, activeToolUseId, (existing) => {
@@ -1491,7 +1502,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           if (last && last.type === 'thinking') {
             const updated = [...base]
             updated[updated.length - 1] = { ...last, content: last.content + msg.text }
-            return { messages: updated, chatState: 'thinking', activeThinkingId: last.id, streamingText: '' }
+            return {
+              messages: updated,
+              chatState: 'thinking',
+              activeThinkingId: last.id,
+              streamingText: '',
+              streamingResponseChars: s.streamingResponseChars + msg.text.length,
+            }
           }
           const id = nextId()
           return {
@@ -1499,6 +1516,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             chatState: 'thinking',
             activeThinkingId: id,
             streamingText: '',
+            streamingResponseChars: s.streamingResponseChars + msg.text.length,
           }
         })
         break
@@ -1767,6 +1785,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             statusVerb: '',
             apiRetry: null,
             tokenUsage: { input_tokens: 0, output_tokens: 0 },
+            streamingResponseChars: 0,
             slashCommands: [],
             activeGoal: null,
             backgroundAgentTasks: {},

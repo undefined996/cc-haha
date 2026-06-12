@@ -7,6 +7,7 @@ export const en = {
   'common.run': 'Run',
   'common.send': 'Send',
   'common.stop': 'Stop',
+  'common.tokens': '{count} tokens',
   'common.rename': 'Rename',
   'common.retry': 'Retry',
   'common.loading': 'Loading...',

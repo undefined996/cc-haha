@@ -23,6 +23,7 @@ import { StreamingIndicator } from './StreamingIndicator'
 import { InlineTaskSummary } from './InlineTaskSummary'
 import { CurrentTurnChangeCard } from './CurrentTurnChangeCard'
 import type { AgentTaskNotification, UIMessage } from '../../types/chat'
+import { formatTokenCount } from '../../lib/formatTokenCount'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { clearWindowSelection, getSelectionPopoverPosition, useSelectionPopoverDismiss } from '../../hooks/useSelectionPopoverDismiss'
 import {
@@ -158,11 +159,6 @@ function ChatSelectionMenu({
   )
 }
 
-function formatCompactTokenCount(tokens: number): string {
-  if (tokens >= 1000) return `${Math.round(tokens / 100) / 10}k`
-  return String(tokens)
-}
-
 function getCompactSummaryTitle(message: CompactSummaryEvent, t: ReturnType<typeof useTranslation>) {
   if (message.trigger === 'auto') return t('chat.compactSummary.autoTitle')
   if (message.trigger === 'manual') return t('chat.compactSummary.manualTitle')
@@ -179,7 +175,7 @@ function CompactStatusDivider({ message, state }: { message?: CompactSummaryEven
   const meta = [
     message?.trigger ? t(`chat.compactSummary.trigger.${message.trigger}` as TranslationKey) : null,
     typeof message?.preTokens === 'number'
-      ? t('chat.compactSummary.tokens', { count: formatCompactTokenCount(message.preTokens) })
+      ? t('chat.compactSummary.tokens', { count: formatTokenCount(message.preTokens) })
       : null,
     typeof message?.messagesSummarized === 'number'
       ? t('chat.compactSummary.messages', { count: String(message.messagesSummarized) })
@@ -350,7 +346,7 @@ function BackgroundTaskEventCard({ message }: { message: BackgroundTaskEvent }) 
             </span>
             {task.usage?.totalTokens ? (
               <span className="hidden shrink-0 text-[11px] text-[var(--color-text-tertiary)] sm:inline">
-                {t('chat.backgroundAgents.tokens', { count: task.usage.totalTokens.toLocaleString() })}
+                {t('chat.backgroundAgents.tokens', { count: formatTokenCount(task.usage.totalTokens) })}
               </span>
             ) : null}
             {duration ? (
