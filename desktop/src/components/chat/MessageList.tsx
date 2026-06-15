@@ -1349,6 +1349,7 @@ export function MessageList({ sessionId, compact = false }: MessageListProps = {
   const messages = sessionState?.messages ?? EMPTY_MESSAGES
   const chatState = sessionState?.chatState ?? 'idle'
   const streamingText = sessionState?.streamingText ?? ''
+  const streamingToolInput = sessionState?.streamingToolInput ?? ''
   const activeThinkingId = sessionState?.activeThinkingId ?? null
   const agentTaskNotifications = sessionState?.agentTaskNotifications ?? EMPTY_AGENT_TASK_NOTIFICATIONS
   const activeAskUserQuestionToolUseId =
@@ -1603,7 +1604,7 @@ export function MessageList({ sessionId, compact = false }: MessageListProps = {
     }
 
     scrollToBottom('auto')
-  }, [messages.length, resolvedSessionId, scrollToBottom, streamingText])
+  }, [messages.length, resolvedSessionId, scrollToBottom, streamingText, streamingToolInput])
 
   const handleJumpToLatest = useCallback(() => {
     scrollToBottom('auto')

@@ -2269,6 +2269,80 @@ describe('MessageList nested tool calls', () => {
     expect(scrollTop).toBe(600)
   })
 
+  it('keeps auto-scrolling when active tool input updates in place', async () => {
+    const scrollIntoView = vi.fn()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    })
+
+    useChatStore.setState({
+      sessions: {
+        [ACTIVE_TAB]: makeSessionState({
+          chatState: 'tool_executing',
+          streamingToolInput: '{"file_path":"/tmp/app.vue","content":"<template>',
+          activeToolUseId: 'write-1',
+          activeToolName: 'Write',
+          messages: [
+            {
+              id: 'tool-write',
+              type: 'tool_use',
+              toolName: 'Write',
+              toolUseId: 'write-1',
+              input: {},
+              partialInput: '{"file_path":"/tmp/app.vue","content":"<template>',
+              isPending: true,
+              timestamp: 1,
+            },
+          ],
+        }),
+      },
+    })
+
+    const { container } = render(<MessageList />)
+    const scroller = container.querySelector('.overflow-y-auto') as HTMLDivElement
+    let scrollTop = 552
+    Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 400 })
+    Object.defineProperty(scroller, 'scrollTop', {
+      configurable: true,
+      get: () => scrollTop,
+      set: (value) => {
+        scrollTop = value
+      },
+    })
+
+    scrollIntoView.mockClear()
+    await waitForProgrammaticScrollReset()
+    fireEvent.scroll(scroller)
+
+    act(() => {
+      useChatStore.setState((state) => ({
+        sessions: {
+          ...state.sessions,
+          [ACTIVE_TAB]: {
+            ...state.sessions[ACTIVE_TAB]!,
+            streamingToolInput: '{"file_path":"/tmp/app.vue","content":"<template>\\n<section>latest</section>',
+            streamingResponseChars: 32,
+            messages: [
+              {
+                ...state.sessions[ACTIVE_TAB]!.messages[0] as Extract<UIMessage, { type: 'tool_use' }>,
+                input: { file_path: '/tmp/app.vue', content: '<template>\n<section>latest</section>' },
+                partialInput: '{"file_path":"/tmp/app.vue","content":"<template>\\n<section>latest</section>',
+              },
+            ],
+          },
+        },
+      }))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('2 lines · 36 chars')).toBeTruthy()
+    })
+    expect(scrollIntoView).not.toHaveBeenCalled()
+    expect(scrollTop).toBe(600)
+  })
+
   it('keeps auto-scrolling without reading scroll geometry synchronously', async () => {
     useChatStore.setState({
       sessions: {
